@@ -1,0 +1,41 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+      - backend:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    depends_on:
+      - postgresql
+    networks:
+      - bankingsystem
+    
+  postgresql:
+    container_name: postgresql
+    image: postgres:14
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: banking_admin
+      POSTGRES_PASSWORD: 7643678
+      POSTGRES_DB: bankingsystem
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    networks:
+      - bankingsystem
+
+networks:
+  bankingsystem:
+    driver: bridge
+
+volumes:
+  postgresql:
+  backend:

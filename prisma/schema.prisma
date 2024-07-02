@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Usuario {
+  id                Int      @id @default(autoincrement())
+  nombre            String
+  email             String   @unique
+  password          String
+  fecha_registro    DateTime @default(now())
+  ultimo_login      DateTime?
+  estado_validacion String
+  token_validacion  String?
+  token_recuperacion String?
+
+  cuentasBancarias  CuentaBancaria[]
+  beneficiarios     Beneficiario[]
+  tarjetas          Tarjeta[]
+  notificaciones    Notificacion[]
+}
+
+model CuentaBancaria {
+  id            Int      @id @default(autoincrement())
+  usuario_id    Int
+  numero_cuenta String   @unique
+  tipo_cuenta   String
+  saldo         Float
+  fecha_apertura DateTime @default(now())
+  estado        String
+
+  usuario       Usuario  @relation(fields: [usuario_id], references: [id])
+  transaccionesOrigen Transaccion[] @relation("CuentaOrigen")
+  transaccionesDestino Transaccion[] @relation("CuentaDestino")
+}
+
+model Transaccion {
+  id                Int      @id @default(autoincrement())
+  cuenta_origen_id  Int
+  cuenta_destino_id Int
+  monto             Float
+  tipo_transaccion  String
+  fecha             DateTime @default(now())
+  descripcion       String
+
+  cuentaOrigen      CuentaBancaria @relation("CuentaOrigen", fields: [cuenta_origen_id], references: [id])
+  cuentaDestino     CuentaBancaria @relation("CuentaDestino", fields: [cuenta_destino_id], references: [id])
+}
+
+model Beneficiario {
+  id             Int      @id @default(autoincrement())
+  usuario_id     Int
+  nombre         String
+  numero_cuenta  String
+  banco          String
+  tipo_cuenta    String
+
+  usuario        Usuario  @relation(fields: [usuario_id], references: [id])
+}
+
+model Tarjeta {
+  id              Int      @id @default(autoincrement())
+  usuario_id      Int
+  numero_tarjeta  String   @unique
+  tipo_tarjeta    String
+  fecha_vencimiento DateTime
+  cvv             Int
+  estado          String
+  limite_credito  Float?
+
+  usuario         Usuario  @relation(fields: [usuario_id], references: [id])
+}
+
+model Notificacion {
+  id                Int      @id @default(autoincrement())
+  usuario_id        Int
+  tipo_notificacion String
+  mensaje           String
+  fecha_envio       DateTime @default(now())
+  leida             Boolean
+  tipo_evento       String
+
+  usuario           Usuario  @relation(fields: [usuario_id], references: [id])
+}
